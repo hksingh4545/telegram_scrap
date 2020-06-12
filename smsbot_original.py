@@ -2,13 +2,11 @@
 from telethon.sync import TelegramClient
 from telethon.tl.types import InputPeerUser
 from telethon.errors.rpcerrorlist import PeerFloodError
-from telethon.errors.rpcerrorlist import PeerFloodError, UserPrivacyRestrictedError
 import configparser
 import os, sys
 import csv
 import random
-from time import sleep
-import traceback
+import time
 
 re="\033[1;31m"
 gr="\033[1;32m"
@@ -69,33 +67,31 @@ class main():
         mode = int(input(gr+"Input : "+re))
          
         message = input(gr+"[+] Enter Your Message : "+re)
-        n = 0 
+         
         for user in users:
-            n += 1
-            if n % 50 == 0:
-                sleep(300)
+            if mode == 2:
+                if user['username'] == "":
+                    continue
+                receiver = client.get_input_entity(user['username'])
+            elif mode == 1:
+                receiver = InputPeerUser(user['id'],user['access_hash'])
+            else:
+                print(re+"[!] Invalid Mode. Exiting.")
+                client.disconnect()
+                sys.exit()
             try:
-                print ("Adding {}".format(user['id']))
-                if mode == 1:
-                    if user['username'] == "":
-                        continue
-                    receiver = client.get_input_entity(user['username'])
-                elif mode == 2:
-                    receiver = InputPeerUser(user['id'], user['access_hash'])
-                else:
-                    sys.exit("Invalid Mode Selected. Please Try Again.")
-                    client(InviteToChannelRequest(target_group_entity,[user_to_add]))
-                    print("Waiting for 60-180 Seconds...")
-                    time.sleep(random.randrange(60, 180))
+                print(gr+"[+] Sending Message to:", user['name'])
+                client.send_message(receiver, message.format(user['name']))
+                print(gr+"[+] Waiting {} seconds".format(andom.choice([10, 5, 15, 12, 8, 21, 11, 13, 14, 16, 3])))
+                time.sleep(andom.choice([10, 5, 15, 12, 8, 21, 11, 13, 14, 16, 3]))
             except PeerFloodError:
-                print("Getting Flood Error from telegram. Script is stopping now. Please try again after some time.")
-            except UserPrivacyRestrictedError:
-                print("The user's privacy settings do not allow you to do this. Skipping.")
-            except:
-                traceback.print_exc()
-                print("Unexpected Error")
+                print(re+"[!] Getting Flood Error from telegram. \n[!] Script is stopping now. \n[!] Please try again after some time.")
+                client.disconnect()
+                sys.exit()
+            except Exception as e:
+                print(re+"[!] Error:", e)
+                print(re+"[!] Trying to continue...")
                 continue
-
         client.disconnect()
         print("Done. Message sent to all users.")
 
